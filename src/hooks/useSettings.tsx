@@ -30,7 +30,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'settings', 'general'), (docSnap) => {
       if (docSnap.exists()) {
-        setSettings({ ...defaultSettings, ...docSnap.data() } as Settings);
+        const newSettings = { ...defaultSettings, ...docSnap.data() } as Settings;
+        setSettings(newSettings);
+        document.title = newSettings.appSubtitle ? `${newSettings.appName} - ${newSettings.appSubtitle}` : newSettings.appName;
+      } else {
+        document.title = defaultSettings.appSubtitle ? `${defaultSettings.appName} - ${defaultSettings.appSubtitle}` : defaultSettings.appName;
       }
       setLoading(false);
     }, (error) => {
