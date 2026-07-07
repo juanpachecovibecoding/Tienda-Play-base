@@ -1,0 +1,6 @@
+{
+  "name": "TiendaPlay",
+  "description": "Sistema de gestiÃ³n de comercio con inventario, ventas, POS con cÃ¡mara QR y control de usuarios.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

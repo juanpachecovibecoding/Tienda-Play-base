@@ -1,0 +1,51 @@
+{
+  "project_id": "gen-lang-client-0745608234",
+  "collections": [
+    {
+      "name": "users",
+      "description": "Store user roles and information.",
+      "fields": [
+        {"name": "email", "type": "string"},
+        {"name": "role", "type": "string"}
+      ]
+    },
+    {
+      "name": "products",
+      "description": "Store inventory items.",
+      "fields": [
+        {"name": "name", "type": "string"},
+        {"name": "description", "type": "string"},
+        {"name": "category", "type": "string"},
+        {"name": "price", "type": "number"},
+        {"name": "stock", "type": "number"},
+        {"name": "lowStockThreshold", "type": "number"},
+        {"name": "qrCodeData", "type": "string"},
+        {"name": "createdAt", "type": "timestamp"}
+      ]
+    },
+    {
+      "name": "sales",
+      "description": "Store completed sales.",
+      "fields": [
+        {"name": "date", "type": "timestamp"},
+        {"name": "items", "type": "array"},
+        {"name": "total", "type": "number"},
+        {"name": "sellerUid", "type": "string"},
+        {"name": "sellerEmail", "type": "string"}
+      ]
+    },
+    {
+      "name": "audit_logs",
+      "description": "Track important changes.",
+      "fields": [
+        {"name": "action", "type": "string"},
+        {"name": "entity", "type": "string"},
+        {"name": "entityId", "type": "string"},
+        {"name": "details", "type": "string"},
+        {"name": "userId", "type": "string"},
+        {"name": "userEmail", "type": "string"},
+        {"name": "timestamp", "type": "timestamp"}
+      ]
+    }
+  ]
+}
