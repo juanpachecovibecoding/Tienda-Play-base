@@ -1,13 +1,15 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import PendingActivation from '../pages/PendingActivation';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
+  superAdminOnly?: boolean;
 }
 
-export default function ProtectedRoute({ children, adminOnly = false }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
@@ -22,9 +24,22 @@ export default function ProtectedRoute({ children, adminOnly = false }: Protecte
   if (!user || !profile) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+  
+  if (profile.status === 'pending') {
+    return <PendingActivation />;
+  }
 
-  if (adminOnly && profile.role !== 'admin') {
-    return <Navigate to="/" replace />;
+  if (superAdminOnly && profile.role !== 'superadmin') {
+    return <Navigate to="/pos" replace />;
+  }
+
+  if (adminOnly && profile.role !== 'admin' && profile.role !== 'superadmin') {
+    return <Navigate to="/pos" replace />;
+  }
+  
+  // Sellers should only access POS. If they try to access anything else, redirect to POS.
+  if (profile.role === 'seller' && location.pathname !== '/pos') {
+    return <Navigate to="/pos" replace />;
   }
 
   return <>{children}</>;

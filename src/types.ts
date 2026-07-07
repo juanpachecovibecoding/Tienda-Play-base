@@ -1,9 +1,10 @@
-export type Role = 'admin' | 'seller';
+export type Role = 'superadmin' | 'admin' | 'seller';
 
 export interface UserProfile {
   id: string;
   email: string;
   role: Role;
+  status: 'pending' | 'active';
   name?: string;
   photoURL?: string;
   createdAt?: number;

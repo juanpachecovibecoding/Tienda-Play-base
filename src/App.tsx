@@ -31,7 +31,7 @@ export default function App() {
               <Route path="pos" element={<POS />} />
               
               <Route path="reports" element={<ProtectedRoute adminOnly><Reports /></ProtectedRoute>} />
-              <Route path="users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
+              <Route path="users" element={<ProtectedRoute superAdminOnly><Users /></ProtectedRoute>} />
               <Route path="settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
             </Route>
           </Routes>

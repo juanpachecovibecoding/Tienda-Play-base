@@ -28,16 +28,16 @@ export default function Layout() {
   };
 
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, adminOnly: false },
-    { to: '/pos', label: 'Punto de Venta', icon: <ShoppingCart size={20} />, adminOnly: false },
-    { to: '/inventory', label: 'Inventario', icon: <Package size={20} />, adminOnly: false },
-    { to: '/reports', label: 'Reportes', icon: <FileText size={20} />, adminOnly: true },
-    { to: '/users', label: 'Usuarios', icon: <Users size={20} />, adminOnly: true },
-    { to: '/settings', label: 'Ajustes', icon: <SettingsIcon size={20} />, adminOnly: true },
+    { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, allowedRoles: ['superadmin', 'admin'] },
+    { to: '/pos', label: 'Punto de Venta', icon: <ShoppingCart size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
+    { to: '/inventory', label: 'Inventario', icon: <Package size={20} />, allowedRoles: ['superadmin', 'admin'] },
+    { to: '/reports', label: 'Reportes', icon: <FileText size={20} />, allowedRoles: ['superadmin', 'admin'] },
+    { to: '/users', label: 'Usuarios', icon: <Users size={20} />, allowedRoles: ['superadmin'] },
+    { to: '/settings', label: 'Ajustes', icon: <SettingsIcon size={20} />, allowedRoles: ['superadmin', 'admin'] },
   ];
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.adminOnly || profile?.role === 'admin'
+    (item) => profile?.role && item.allowedRoles.includes(profile.role)
   );
 
   return (

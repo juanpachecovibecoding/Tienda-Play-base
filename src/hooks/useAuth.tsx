@@ -31,12 +31,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (userDoc.exists()) {
           userProfile = { id: firebaseUser.uid, ...userDoc.data() } as UserProfile;
+          
+          if (firebaseUser.email === 'juanpacheco@playcode.com.ar') {
+            if (userProfile.role !== 'superadmin' || userProfile.status !== 'active') {
+              userProfile.role = 'superadmin';
+              userProfile.status = 'active';
+              await setDoc(userDocRef, userProfile);
+            }
+          } else if (!userProfile.status) {
+            userProfile.status = userProfile.role === 'admin' ? 'active' : 'pending';
+            await setDoc(userDocRef, userProfile);
+          }
         } else {
           // Check if it is the root admin
-          const isRoot = firebaseUser.email === 'juanpacheco@playcode.com.ar' || firebaseUser.email === 'juanpacheco.vibecoding@gmail.com';
+          const isSuperAdmin = firebaseUser.email === 'juanpacheco@playcode.com.ar';
           const newProfile: Omit<UserProfile, 'id'> = {
             email: firebaseUser.email || '',
-            role: isRoot ? 'admin' : 'seller',
+            role: isSuperAdmin ? 'superadmin' : 'seller',
+            status: isSuperAdmin ? 'active' : 'pending',
             name: firebaseUser.displayName || '',
             photoURL: firebaseUser.photoURL || '',
             createdAt: Date.now()
