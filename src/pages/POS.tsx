@@ -124,9 +124,9 @@ export default function POS() {
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0 flex-1">
       {/* Scanner Section */}
-      <div className="flex-1 flex flex-col gap-6">
+      <div className="flex-1 flex flex-col gap-6 min-h-[400px] lg:min-h-0">
         <div className="bg-slate-900 rounded-2xl flex-1 relative overflow-hidden flex flex-col items-center justify-center text-white border-4 border-slate-800">
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-4 right-4 z-50">
             <button 
               onClick={() => setShowScanner(!showScanner)}
               className="px-4 py-2 bg-slate-800/80 text-white rounded-lg text-sm font-medium border border-slate-700 hover:bg-slate-700 transition-colors flex items-center gap-2"
