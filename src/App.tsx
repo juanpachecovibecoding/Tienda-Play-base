@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import POS from './pages/POS';
+import Sales from './pages/Sales';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
 import Customers from './pages/Customers';
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="inventory" element={<Inventory />} />
               <Route path="pos" element={<POS />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="sales" element={<ProtectedRoute adminOnly><Sales /></ProtectedRoute>} />
               
               <Route path="reports" element={<ProtectedRoute adminOnly><Reports /></ProtectedRoute>} />
               <Route path="users" element={<ProtectedRoute superAdminOnly><Users /></ProtectedRoute>} />

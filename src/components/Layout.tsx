@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   Store,
-  Contact
+  Contact,
+  Receipt
 } from 'lucide-react';
 
 export default function Layout() {
@@ -32,6 +33,7 @@ export default function Layout() {
     { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/pos', label: 'Punto de Venta', icon: <ShoppingCart size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
     { to: '/customers', label: 'Clientes', icon: <Contact size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
+    { to: '/sales', label: 'Ventas', icon: <Receipt size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/inventory', label: 'Inventario', icon: <Package size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/reports', label: 'Reportes', icon: <FileText size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/users', label: 'Usuarios', icon: <Users size={20} />, allowedRoles: ['superadmin'] },
