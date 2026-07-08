@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Product, SaleItem } from '../types';
+import { Product, SaleItem, Customer } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingCart, Camera, Trash2, CheckCircle, X } from 'lucide-react';
+import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User } from 'lucide-react';
 
 export default function POS() {
   const { profile } = useAuth();
@@ -14,6 +14,33 @@ export default function POS() {
   const [success, setSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'Mercado Pago' | 'Transferencia Bancaria'>('Mercado Pago');
   const [changeAmount, setChangeAmount] = useState<string>('');
+  
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const q = query(collection(db, 'customers'), orderBy('firstName', 'asc'));
+        const snap = await getDocs(q);
+        const results: Customer[] = [];
+        snap.forEach(d => {
+          results.push({ id: d.id, ...d.data() } as Customer);
+        });
+        setCustomers(results);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  const filteredCustomers = customers.filter(c => 
+    `${c.firstName} ${c.lastName}`.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    c.phone.includes(customerSearchQuery)
+  );
 
   const handleScan = async (result: string) => {
     // Expected result format: the qrCodeData of a product
@@ -109,13 +136,16 @@ export default function POS() {
         sellerUid: profile.id,
         sellerEmail: profile.email,
         paymentMethod,
-        ...(paymentMethod === 'Efectivo' && changeAmount ? { change: parseFloat(changeAmount) } : {})
+        ...(paymentMethod === 'Efectivo' && changeAmount ? { change: parseFloat(changeAmount) } : {}),
+        ...(selectedCustomer ? { customerId: selectedCustomer.id, customerName: `${selectedCustomer.firstName} ${selectedCustomer.lastName}` } : {})
       });
 
       // Show success
       setCart([]);
       setChangeAmount('');
       setPaymentMethod('Mercado Pago');
+      setSelectedCustomer(null);
+      setCustomerSearchQuery('');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
 
@@ -210,6 +240,61 @@ export default function POS() {
           </div>
 
           <div className="mb-4 space-y-3">
+            <div className="relative">
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Cliente (Opcional)</label>
+              {selectedCustomer ? (
+                <div className="flex items-center justify-between p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <User size={16} className="text-indigo-500 flex-shrink-0" />
+                    <span className="text-sm font-semibold text-indigo-900 truncate">{selectedCustomer.firstName} {selectedCustomer.lastName}</span>
+                  </div>
+                  <button onClick={() => setSelectedCustomer(null)} className="text-indigo-400 hover:text-indigo-600 p-1">
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="relative flex items-center">
+                    <Search className="absolute left-3 text-slate-400" size={16} />
+                    <input 
+                      type="text" 
+                      placeholder="Buscar cliente..." 
+                      value={customerSearchQuery}
+                      onChange={(e) => {
+                        setCustomerSearchQuery(e.target.value);
+                        setShowCustomerDropdown(true);
+                      }}
+                      onFocus={() => setShowCustomerDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowCustomerDropdown(false), 200)}
+                      className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white placeholder-slate-400"
+                    />
+                  </div>
+                  {showCustomerDropdown && customerSearchQuery.trim() !== '' && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                      {filteredCustomers.length > 0 ? (
+                        filteredCustomers.map(c => (
+                          <div 
+                            key={c.id} 
+                            onClick={() => {
+                              setSelectedCustomer(c);
+                              setCustomerSearchQuery('');
+                              setShowCustomerDropdown(false);
+                            }}
+                            className="px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
+                          >
+                            <p className="text-sm font-semibold text-slate-800">{c.firstName} {c.lastName}</p>
+                            <p className="text-xs text-slate-500">{c.phone}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-sm text-slate-500 text-center">No se encontraron clientes</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Método de Pago</label>
               <select 

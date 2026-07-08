@@ -40,6 +40,8 @@ export interface Sale {
   sellerEmail: string;
   paymentMethod: 'Efectivo' | 'Mercado Pago' | 'Transferencia Bancaria';
   change?: number;
+  customerId?: string;
+  customerName?: string;
 }
 
 export interface Customer {

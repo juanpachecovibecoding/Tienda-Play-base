@@ -54,6 +54,7 @@ export default function Reports() {
     const tableData = sales.map(s => [
       format(new Date(s.date), 'dd/MM/yyyy HH:mm'),
       s.sellerEmail,
+      s.customerName || 'Consumidor Final',
       s.items.length.toString(),
       s.paymentMethod || 'No registrado',
       s.change !== undefined ? `$${s.change.toFixed(2)}` : '-',
@@ -62,7 +63,7 @@ export default function Reports() {
 
     autoTable(doc, {
       startY: 50,
-      head: [['Fecha', 'Vendedor', 'Artículos', 'Método Pago', 'Vuelto', 'Total']],
+      head: [['Fecha', 'Vendedor', 'Cliente', 'Artículos', 'Método Pago', 'Vuelto', 'Total']],
       body: tableData,
     });
 

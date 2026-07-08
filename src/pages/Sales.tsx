@@ -37,7 +37,8 @@ export default function Sales() {
 
   const filteredSales = sales.filter(s => 
     s.sellerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.id.toLowerCase().includes(searchQuery.toLowerCase())
+    s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -47,7 +48,7 @@ export default function Sales() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
-            placeholder="Buscar por vendedor o ID de venta..." 
+            placeholder="Buscar por vendedor, cliente o ID de venta..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-800 placeholder-slate-400"
@@ -63,6 +64,7 @@ export default function Sales() {
                 <th className="px-6 py-4">ID Venta</th>
                 <th className="px-6 py-4">Fecha</th>
                 <th className="px-6 py-4">Vendedor</th>
+                <th className="px-6 py-4">Cliente</th>
                 <th className="px-6 py-4">Método de Pago</th>
                 <th className="px-6 py-4">Artículos</th>
                 <th className="px-6 py-4">Total</th>
@@ -71,9 +73,9 @@ export default function Sales() {
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {loading ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">Cargando ventas...</td></tr>
+                <tr><td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-medium">Cargando ventas...</td></tr>
               ) : filteredSales.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-medium">No se encontraron ventas.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-medium">No se encontraron ventas.</td></tr>
               ) : filteredSales.map(sale => (
                 <tr key={sale.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
@@ -85,6 +87,13 @@ export default function Sales() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-slate-600 font-medium">{sale.sellerEmail}</div>
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {sale.customerName ? (
+                      <span className="font-medium">{sale.customerName}</span>
+                    ) : (
+                      <span className="text-slate-400 italic text-xs">Consumidor Final</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold">
@@ -140,6 +149,10 @@ export default function Sales() {
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Vendedor</p>
                   <p className="font-semibold text-slate-800 truncate">{selectedSale.sellerEmail}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Cliente</p>
+                  <p className="font-semibold text-slate-800 truncate">{selectedSale.customerName || <span className="text-slate-400 italic font-medium">Consumidor Final</span>}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Método de Pago</p>

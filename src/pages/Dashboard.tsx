@@ -123,6 +123,7 @@ export default function Dashboard() {
                 <tr>
                   <th className="px-6 py-3">Fecha</th>
                   <th className="px-6 py-3">Vendedor</th>
+                  <th className="px-6 py-3">Cliente</th>
                   <th className="px-6 py-3">Método</th>
                   <th className="px-6 py-3">Artículos</th>
                   <th className="px-6 py-3">Total</th>
@@ -136,6 +137,13 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-4 text-slate-500">
                       {sale.sellerEmail}
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">
+                      {sale.customerName ? (
+                        <span className="font-medium text-slate-700">{sale.customerName}</span>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">Consumidor Final</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-slate-500 text-xs">
                       <span className="px-2 py-1 bg-slate-100 rounded-md font-semibold">{sale.paymentMethod || 'Efectivo'}</span>
