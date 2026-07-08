@@ -32,7 +32,7 @@ export default function Layout() {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/pos', label: 'Punto de Venta', icon: <ShoppingCart size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
-    { to: '/customers', label: 'Clientes', icon: <Contact size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
+    { to: '/customers', label: 'Clientes', icon: <Contact size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/sales', label: 'Ventas', icon: <Receipt size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/inventory', label: 'Inventario', icon: <Package size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/reports', label: 'Reportes', icon: <FileText size={20} />, allowedRoles: ['superadmin', 'admin'] },

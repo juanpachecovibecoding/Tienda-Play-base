@@ -31,7 +31,7 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="pos" element={<POS />} />
-              <Route path="customers" element={<Customers />} />
+              <Route path="customers" element={<ProtectedRoute adminOnly><Customers /></ProtectedRoute>} />
               <Route path="sales" element={<ProtectedRoute adminOnly><Sales /></ProtectedRoute>} />
               
               <Route path="reports" element={<ProtectedRoute adminOnly><Reports /></ProtectedRoute>} />
