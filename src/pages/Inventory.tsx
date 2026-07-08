@@ -344,7 +344,6 @@ export default function Inventory() {
                         ref={fileInputRef}
                         onChange={handleImageUpload}
                         accept="image/*"
-                        capture="environment"
                         className="hidden"
                       />
                       <p className="text-[10px] text-slate-500 mt-1">Máximo 500KB.</p>
