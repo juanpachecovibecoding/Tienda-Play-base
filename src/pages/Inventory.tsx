@@ -4,7 +4,7 @@ import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { QRCodeSVG } from 'qrcode.react';
-import { Plus, Edit2, Trash2, Search, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Upload, Image as ImageIcon, Camera } from 'lucide-react';
 
 export default function Inventory() {
   const { profile } = useAuth();
@@ -27,6 +27,7 @@ export default function Inventory() {
     imageUrl: ''
   });
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchProducts = async () => {
     const querySnapshot = await getDocs(collection(db, 'products'));
@@ -125,6 +126,9 @@ export default function Inventory() {
     setFormData({ ...formData, imageUrl: '' });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
     }
   };
 
@@ -320,14 +324,22 @@ export default function Inventory() {
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Imagen del Artículo (Opcional)</label>
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors w-full justify-center"
+                          className="flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors flex-1 justify-center"
                         >
                           <Upload size={16} />
-                          Subir o Tomar Foto
+                          Archivo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors flex-1 justify-center"
+                        >
+                          <Camera size={16} />
+                          Cámara
                         </button>
                         {formData.imageUrl && (
                           <button
@@ -344,6 +356,14 @@ export default function Inventory() {
                         ref={fileInputRef}
                         onChange={handleImageUpload}
                         accept="image/*"
+                        className="hidden"
+                      />
+                      <input
+                        type="file"
+                        ref={cameraInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        capture="environment"
                         className="hidden"
                       />
                       <p className="text-[10px] text-slate-500 mt-1">Máximo 500KB.</p>
