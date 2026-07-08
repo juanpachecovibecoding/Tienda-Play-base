@@ -12,6 +12,8 @@ export default function POS() {
   const [showScanner, setShowScanner] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'Mercado Pago' | 'Transferencia Bancaria'>('Mercado Pago');
+  const [changeAmount, setChangeAmount] = useState<string>('');
 
   const handleScan = async (result: string) => {
     // Expected result format: the qrCodeData of a product
@@ -105,11 +107,15 @@ export default function POS() {
         items: cart,
         total,
         sellerUid: profile.id,
-        sellerEmail: profile.email
+        sellerEmail: profile.email,
+        paymentMethod,
+        ...(paymentMethod === 'Efectivo' && changeAmount ? { change: parseFloat(changeAmount) } : {})
       });
 
       // Show success
       setCart([]);
+      setChangeAmount('');
+      setPaymentMethod('Mercado Pago');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
 
@@ -201,6 +207,34 @@ export default function POS() {
           <div className="flex justify-between items-center mb-4">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total a Pagar</span>
             <span className="text-2xl font-bold text-slate-800">${total.toFixed(2)}</span>
+          </div>
+
+          <div className="mb-4 space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Método de Pago</label>
+              <select 
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as any)}
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
+              >
+                <option value="Mercado Pago">Mercado Pago</option>
+                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                <option value="Efectivo">Efectivo</option>
+              </select>
+            </div>
+            
+            {paymentMethod === 'Efectivo' && (
+              <div>
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Vuelto ($)</label>
+                <input 
+                  type="number"
+                  value={changeAmount}
+                  onChange={(e) => setChangeAmount(e.target.value)}
+                  placeholder="Ej: 500"
+                  className="w-full border border-slate-200 rounded-xl p-2.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
+                />
+              </div>
+            )}
           </div>
           
           <button 

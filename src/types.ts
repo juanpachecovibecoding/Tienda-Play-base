@@ -38,6 +38,8 @@ export interface Sale {
   total: number;
   sellerUid: string;
   sellerEmail: string;
+  paymentMethod: 'Efectivo' | 'Mercado Pago' | 'Transferencia Bancaria';
+  change?: number;
 }
 
 export interface AuditLog {

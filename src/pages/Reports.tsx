@@ -55,12 +55,14 @@ export default function Reports() {
       format(new Date(s.date), 'dd/MM/yyyy HH:mm'),
       s.sellerEmail,
       s.items.length.toString(),
+      s.paymentMethod || 'No registrado',
+      s.change !== undefined ? `$${s.change.toFixed(2)}` : '-',
       `$${s.total.toFixed(2)}`
     ]);
 
     autoTable(doc, {
       startY: 50,
-      head: [['Fecha', 'Vendedor', 'ArtÃ­culos', 'Total']],
+      head: [['Fecha', 'Vendedor', 'Artículos', 'Método Pago', 'Vuelto', 'Total']],
       body: tableData,
     });
 
