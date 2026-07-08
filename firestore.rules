@@ -7,7 +7,7 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return isRoot() || (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin");
+      return isRoot() || (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin" || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin"));
     }
 
     function isStaff() {
@@ -42,6 +42,11 @@ service cloud.firestore {
       allow create: if isStaff();
       // Only admins can update or delete sales
       allow update, delete: if isAdmin();
+    }
+
+    match /customers/{customerId} {
+      allow read, create, update: if isStaff();
+      allow delete: if isAdmin();
     }
 
     match /audit_logs/{logId} {

@@ -37,8 +37,8 @@ export default function ProtectedRoute({ children, adminOnly = false, superAdmin
     return <Navigate to="/pos" replace />;
   }
   
-  // Sellers should only access POS. If they try to access anything else, redirect to POS.
-  if (profile.role === 'seller' && location.pathname !== '/pos') {
+  // Sellers should only access POS and Customers. If they try to access anything else, redirect to POS.
+  if (profile.role === 'seller' && location.pathname !== '/pos' && location.pathname !== '/customers') {
     return <Navigate to="/pos" replace />;
   }
 
