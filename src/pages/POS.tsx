@@ -4,7 +4,7 @@ import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, orde
 import { db } from '../lib/firebase';
 import { Product, SaleItem, Customer } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User } from 'lucide-react';
+import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User, AlertCircle } from 'lucide-react';
 
 export default function POS() {
   const { profile } = useAuth();
@@ -12,6 +12,7 @@ export default function POS() {
   const [showScanner, setShowScanner] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'Mercado Pago' | 'Transferencia Bancaria'>('Mercado Pago');
   const [changeAmount, setChangeAmount] = useState<string>('');
   
@@ -42,6 +43,11 @@ export default function POS() {
     c.phone.includes(customerSearchQuery)
   );
 
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(null), 3000);
+  };
+
   const handleScan = async (result: string) => {
     // Expected result format: the qrCodeData of a product
     setShowScanner(false);
@@ -56,14 +62,14 @@ export default function POS() {
         if (product.stock > 0) {
           addToCart(product);
         } else {
-          alert('Este producto no tiene stock disponible.');
+          showError('Este producto no tiene stock disponible.');
         }
       } else {
-        alert('Producto no encontrado en el inventario.');
+        showError('Producto no encontrado en el inventario.');
       }
     } catch (error) {
       console.error('Error scanning code', error);
-      alert('Error al escanear el cÃ³digo.');
+      showError('Error al escanear el código.');
     }
   };
 
@@ -73,7 +79,7 @@ export default function POS() {
       if (existing) {
         // check stock limit
         if (existing.quantity >= product.stock) {
-          alert(`No puedes agregar mÃ¡s. Stock mÃ¡ximo: ${product.stock}`);
+          showError(`No puedes agregar más. Stock máximo: ${product.stock}`);
           return prev;
         }
         return prev.map(item => 
@@ -151,14 +157,27 @@ export default function POS() {
 
     } catch (error: any) {
       console.error(error);
-      alert(error.message);
+      showError(error.message);
     } finally {
       setProcessing(false);
     }
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0 flex-1">
+    <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0 flex-1 relative">
+      {/* Toast Notification */}
+      {errorMsg && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4">
+          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 shadow-lg flex items-center gap-3">
+            <AlertCircle size={20} />
+            <span className="font-semibold text-sm">{errorMsg}</span>
+            <button onClick={() => setErrorMsg(null)} className="p-1 hover:bg-red-100 rounded-lg ml-2">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Scanner Section */}
       <div className="flex-1 flex flex-col gap-6 min-h-[400px] lg:min-h-0">
         <div className="bg-slate-900 rounded-2xl flex-1 relative overflow-hidden flex flex-col items-center justify-center text-white border-4 border-slate-800">
