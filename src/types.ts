@@ -42,6 +42,16 @@ export interface Sale {
   change?: number;
 }
 
+export interface Customer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  address: string;
+  email?: string;
+  createdAt: number;
+}
+
 export interface AuditLog {
   id: string;
   action: string;

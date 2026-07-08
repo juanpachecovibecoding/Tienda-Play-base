@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  Store
+  Store,
+  Contact
 } from 'lucide-react';
 
 export default function Layout() {
@@ -30,6 +31,7 @@ export default function Layout() {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/pos', label: 'Punto de Venta', icon: <ShoppingCart size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
+    { to: '/customers', label: 'Clientes', icon: <Contact size={20} />, allowedRoles: ['superadmin', 'admin', 'seller'] },
     { to: '/inventory', label: 'Inventario', icon: <Package size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/reports', label: 'Reportes', icon: <FileText size={20} />, allowedRoles: ['superadmin', 'admin'] },
     { to: '/users', label: 'Usuarios', icon: <Users size={20} />, allowedRoles: ['superadmin'] },
