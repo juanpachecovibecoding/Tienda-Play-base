@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { UserProfile } from '../types';
-import { Users as UsersIcon, Shield, Edit2, Check, X, Clock, CheckCircle } from 'lucide-react';
+import { Users as UsersIcon, Shield, Edit2, Check, X, Clock, CheckCircle, Trash2 } from 'lucide-react';
 
 export default function Users() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -48,6 +48,23 @@ export default function Users() {
     } catch (error) {
       console.error(error);
       alert('Error al actualizar el usuario');
+    }
+  };
+
+  const handleDelete = async (user: UserProfile) => {
+    if (user.email === 'juanpacheco@playcode.com.ar') {
+      alert('No puedes eliminar al administrador principal.');
+      return;
+    }
+    
+    if (window.confirm(`¿Estás seguro que deseas eliminar al usuario ${user.name || user.email}?`)) {
+      try {
+        await deleteDoc(doc(db, 'users', user.id));
+        fetchUsers();
+      } catch (error) {
+        console.error(error);
+        alert('Error al eliminar el usuario');
+      }
     }
   };
 
@@ -138,13 +155,22 @@ export default function Users() {
                         <button onClick={() => setEditingId(null)} className="p-1 text-slate-400 hover:bg-slate-100 rounded"><X size={16} /></button>
                       </div>
                     ) : (
-                      <button 
-                        onClick={() => handleEdit(user)} 
-                        className="text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-30 disabled:hover:text-slate-400"
-                        disabled={user.email === 'juanpacheco@playcode.com.ar'}
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                      <div className="flex justify-end space-x-2">
+                        <button 
+                          onClick={() => handleEdit(user)} 
+                          className="p-1 text-slate-400 hover:text-indigo-600 transition-colors disabled:opacity-30 disabled:hover:text-slate-400 rounded"
+                          disabled={user.email === 'juanpacheco@playcode.com.ar'}
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(user)} 
+                          className="p-1 text-slate-400 hover:text-rose-600 transition-colors disabled:opacity-30 disabled:hover:text-slate-400 rounded"
+                          disabled={user.email === 'juanpacheco@playcode.com.ar'}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
