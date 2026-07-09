@@ -176,7 +176,7 @@ export default function POS() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0 flex-1 relative">
+    <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0 flex-1 absolute inset-0 md:relative bg-white md:bg-transparent">
       {/* Toast Notification */}
       {errorMsg && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4">
@@ -191,7 +191,7 @@ export default function POS() {
       )}
 
       {showScanner ? (
-        <div className="absolute inset-0 z-40 bg-slate-900 rounded-2xl overflow-hidden flex flex-col border-4 border-slate-800">
+        <div className="absolute inset-0 z-40 bg-slate-900 md:rounded-2xl overflow-hidden flex flex-col md:border-4 border-slate-800">
           <div className="absolute inset-0 z-0 bg-black">
             <Scanner 
               onScan={(result) => handleScan(result[0].rawValue)}
@@ -214,8 +214,8 @@ export default function POS() {
           </div>
         </div>
       ) : (
-        <div className="w-full max-w-2xl mx-auto flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex flex-col gap-4">
+        <div className="w-full lg:max-w-xl mx-auto flex-1 bg-white md:rounded-2xl md:shadow-sm md:border border-slate-100 flex flex-col h-full overflow-hidden">
+          <div className="p-4 md:p-5 border-b border-slate-100 flex flex-col gap-4">
             <h2 className="font-bold text-slate-800">Caja Actual</h2>
             
             <div className="flex gap-3 items-center">

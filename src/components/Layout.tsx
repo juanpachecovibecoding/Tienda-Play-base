@@ -45,7 +45,7 @@ export default function Layout() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row font-sans overflow-hidden">
+    <div className="h-[100dvh] bg-slate-50 text-slate-800 flex flex-col md:flex-row font-sans overflow-hidden">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white border-b border-slate-800 shadow-xl">
         <div className="flex items-center gap-3 font-semibold tracking-tight text-xl">
@@ -70,7 +70,7 @@ export default function Layout() {
       <aside
         className={`${
           mobileMenuOpen ? 'block' : 'hidden'
-        } md:block w-full md:w-64 bg-slate-900 text-white shadow-xl flex-shrink-0 flex flex-col md:sticky md:top-0 md:h-screen transition-all`}
+        } md:block w-full md:w-64 bg-slate-900 text-white shadow-xl flex-shrink-0 flex flex-col md:sticky md:top-0 md:h-[100dvh] transition-all`}
       >
         <div className="p-6 hidden md:flex items-center gap-3 border-b border-slate-800">
           {settings.logoUrl ? (
@@ -134,7 +134,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shadow-sm flex-shrink-0">
           <div className="flex items-center gap-2 text-slate-500">
@@ -151,7 +151,7 @@ export default function Layout() {
         </header>
         
         {/* Scrollable Content */}
-        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto relative">
           <Outlet />
         </div>
       </main>
