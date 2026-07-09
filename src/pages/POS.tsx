@@ -4,7 +4,7 @@ import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, orde
 import { db } from '../lib/firebase';
 import { Product, SaleItem, Customer } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User, AlertCircle, Package } from 'lucide-react';
 
 export default function POS() {
   const { profile } = useAuth();
@@ -16,31 +16,44 @@ export default function POS() {
   const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'Mercado Pago' | 'Transferencia Bancaria'>('Mercado Pago');
   const [changeAmount, setChangeAmount] = useState<string>('');
   
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchCustomersAndProducts = async () => {
       try {
-        const q = query(collection(db, 'customers'), orderBy('firstName', 'asc'));
-        const snap = await getDocs(q);
-        const results: Customer[] = [];
-        snap.forEach(d => {
-          results.push({ id: d.id, ...d.data() } as Customer);
-        });
-        setCustomers(results);
+        const [customersSnap, productsSnap] = await Promise.all([
+          getDocs(query(collection(db, 'customers'), orderBy('firstName', 'asc'))),
+          getDocs(query(collection(db, 'products'), orderBy('name', 'asc')))
+        ]);
+
+        const customersList: Customer[] = [];
+        customersSnap.forEach(d => customersList.push({ id: d.id, ...d.data() } as Customer));
+        setCustomers(customersList);
+
+        const productsList: Product[] = [];
+        productsSnap.forEach(d => productsList.push({ id: d.id, ...d.data() } as Product));
+        setProducts(productsList);
+
       } catch (error) {
-        console.error("Error fetching customers:", error);
+        console.error("Error fetching data:", error);
       }
     };
-    fetchCustomers();
+    fetchCustomersAndProducts();
   }, []);
 
   const filteredCustomers = customers.filter(c => 
     `${c.firstName} ${c.lastName}`.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     c.phone.includes(customerSearchQuery)
+  );
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(productSearchQuery.toLowerCase())
   );
 
   const showError = (msg: string) => {
@@ -50,7 +63,6 @@ export default function POS() {
 
   const handleScan = async (result: string) => {
     // Expected result format: the qrCodeData of a product
-    setShowScanner(false);
     try {
       const q = query(collection(db, 'products'), where('qrCodeData', '==', result));
       const querySnapshot = await getDocs(q);
@@ -178,54 +190,86 @@ export default function POS() {
         </div>
       )}
 
-      {/* Scanner Section */}
-      <div className="flex-1 flex flex-col gap-6 min-h-[400px] lg:min-h-0">
-        <div className="bg-slate-900 rounded-2xl flex-1 relative overflow-hidden flex flex-col items-center justify-center text-white border-4 border-slate-800">
-          <div className="absolute top-4 right-4 z-50">
-            <button 
-              onClick={() => setShowScanner(!showScanner)}
-              className="px-4 py-2 bg-slate-800/80 text-white rounded-lg text-sm font-medium border border-slate-700 hover:bg-slate-700 transition-colors flex items-center gap-2"
-            >
-              <Camera size={16} />
-              {showScanner ? 'Apagar' : 'Encender'}
-            </button>
+      {showScanner ? (
+        <div className="absolute inset-0 z-40 bg-slate-900 rounded-2xl overflow-hidden flex flex-col border-4 border-slate-800">
+          <div className="absolute inset-0 z-0 bg-black">
+            <Scanner 
+              onScan={(result) => handleScan(result[0].rawValue)}
+              onError={(error) => console.error(error)}
+            />
           </div>
           
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent pointer-events-none z-0"></div>
+          {/* Overlay elements */}
+          <div className="absolute top-6 left-6 z-10 flex items-center gap-3">
+             <div className="bg-white text-slate-900 px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg">
+                <ShoppingCart size={18} />
+                <span className="text-lg">x{cart.reduce((acc, i) => acc + i.quantity, 0)}</span>
+             </div>
+          </div>
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
+             <button onClick={() => setShowScanner(false)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-full font-bold shadow-xl flex items-center gap-2 text-lg">
+                <CheckCircle size={20} />
+                Listo
+             </button>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full max-w-2xl mx-auto flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
+          <div className="p-5 border-b border-slate-100 flex flex-col gap-4">
+            <h2 className="font-bold text-slate-800">Caja Actual</h2>
+            
+            <div className="flex gap-3 items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Buscar artículos por nombre..." 
+                  value={productSearchQuery}
+                  onChange={(e) => setProductSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors text-sm"
+                />
+                
+                {/* Search Results Dropdown */}
+                {productSearchQuery && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                    {filteredProducts.length === 0 ? (
+                      <div className="p-4 text-sm text-slate-500 text-center">No se encontraron productos</div>
+                    ) : (
+                      filteredProducts.map(product => (
+                        <button
+                          key={product.id}
+                          onClick={() => {
+                            if (product.stock > 0) {
+                              addToCart(product);
+                              setProductSearchQuery(''); // clear search after adding
+                            } else {
+                              showError('Sin stock');
+                            }
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex justify-between items-center transition-colors"
+                        >
+                          <div>
+                            <p className="font-medium text-slate-800 text-sm">{product.name}</p>
+                            <p className="text-xs text-slate-500">Stock: {product.stock}</p>
+                          </div>
+                          <span className="font-bold text-indigo-600">${product.price.toFixed(2)}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={() => setShowScanner(true)}
+                className="p-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center shadow-sm flex-shrink-0"
+                title="Escanear QR"
+              >
+                <Camera size={20} />
+              </button>
+            </div>
+          </div>
           
-          {showScanner ? (
-            <div className="w-full h-full absolute inset-0 z-0 bg-black">
-              <Scanner 
-                onScan={(result) => handleScan(result[0].rawValue)}
-                onError={(error) => console.error(error)}
-              />
-            </div>
-          ) : (
-            <div className="z-10 flex flex-col items-center">
-              <div className="w-48 h-48 border-2 border-indigo-400 border-dashed rounded-xl flex flex-col items-center justify-center bg-slate-800/50 relative">
-                <div className="w-32 h-32 opacity-20 bg-white rounded-lg"></div>
-                <div className="absolute -top-2 -left-2 w-6 h-6 border-t-4 border-l-4 border-indigo-400"></div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 border-t-4 border-r-4 border-indigo-400"></div>
-                <div className="absolute -bottom-2 -left-2 w-6 h-6 border-b-4 border-l-4 border-indigo-400"></div>
-                <div className="absolute -bottom-2 -right-2 w-6 h-6 border-b-4 border-r-4 border-indigo-400"></div>
-                <span className="mt-4 text-[10px] uppercase tracking-widest font-bold text-indigo-300">Cámara Apagada</span>
-              </div>
-              <div className="mt-8 text-center px-6">
-                <h3 className="font-bold text-lg">Terminal de Cobro</h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-sm">Apunte la cámara al código QR del producto para agregarlo a la venta.</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Cart Section */}
-      <div className="w-full lg:w-[400px] flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full overflow-hidden">
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="font-bold text-slate-800">Caja Actual</h2>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+          <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {cart.length === 0 ? (
             <div className="h-full flex items-center justify-center text-slate-400 text-sm font-medium">
               La caja está vacía
@@ -359,6 +403,7 @@ export default function POS() {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }
