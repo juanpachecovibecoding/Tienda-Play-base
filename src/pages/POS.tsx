@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Product, SaleItem, Customer } from '../types';
+import { Product, SaleItem, Customer, Promotion } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User, AlertCircle, Package } from 'lucide-react';
+import { ShoppingCart, Camera, Trash2, CheckCircle, X, Search, User, AlertCircle, Package, Tag } from 'lucide-react';
 
 export default function POS() {
   const { profile } = useAuth();
@@ -24,12 +24,16 @@ export default function POS() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null);
+
   useEffect(() => {
     const fetchCustomersAndProducts = async () => {
       try {
-        const [customersSnap, productsSnap] = await Promise.all([
+        const [customersSnap, productsSnap, promotionsSnap] = await Promise.all([
           getDocs(query(collection(db, 'customers'), orderBy('firstName', 'asc'))),
-          getDocs(query(collection(db, 'products'), orderBy('name', 'asc')))
+          getDocs(query(collection(db, 'products'), orderBy('name', 'asc'))),
+          getDocs(query(collection(db, 'promotions'), where('active', '==', true)))
         ]);
 
         const customersList: Customer[] = [];
@@ -39,6 +43,10 @@ export default function POS() {
         const productsList: Product[] = [];
         productsSnap.forEach(d => productsList.push({ id: d.id, ...d.data() } as Product));
         setProducts(productsList);
+
+        const promotionsList: Promotion[] = [];
+        promotionsSnap.forEach(d => promotionsList.push({ id: d.id, ...d.data() } as Promotion));
+        setPromotions(promotionsList);
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -119,7 +127,10 @@ export default function POS() {
     }));
   };
 
-  const total = cart.reduce((acc, item) => acc + (item.priceAtSale * item.quantity), 0);
+  const subtotal = cart.reduce((acc, item) => acc + (item.priceAtSale * item.quantity), 0);
+  const discountPercentage = selectedPromotion ? selectedPromotion.discountPercentage : 0;
+  const discountApplied = subtotal * (discountPercentage / 100);
+  const total = subtotal - discountApplied;
 
   const handleCheckout = async () => {
     if (cart.length === 0 || !profile) return;
@@ -151,6 +162,11 @@ export default function POS() {
         date: Date.now(),
         items: cart,
         total,
+        subtotal,
+        discountPercentage,
+        discountApplied,
+        promotionId: selectedPromotion?.id || null,
+        promotionName: selectedPromotion?.name || null,
         sellerUid: profile.id,
         sellerEmail: profile.email,
         paymentMethod,
@@ -164,6 +180,7 @@ export default function POS() {
       setPaymentMethod('Mercado Pago');
       setSelectedCustomer(null);
       setCustomerSearchQuery('');
+      setSelectedPromotion(null);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
 
@@ -296,11 +313,28 @@ export default function POS() {
           )}
         </div>
 
-        <div className="p-5 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total a Pagar</span>
-            <span className="text-2xl font-bold text-slate-800">${total.toFixed(2)}</span>
-          </div>
+        <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col">
+          {selectedPromotion ? (
+            <div className="mb-4 flex flex-col gap-1">
+              <div className="flex justify-between items-center text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wider">Subtotal</span>
+                <span className="text-sm font-semibold">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-emerald-600">
+                <span className="text-xs font-semibold uppercase tracking-wider">Descuento ({selectedPromotion.name})</span>
+                <span className="text-sm font-semibold">-${discountApplied.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total a Pagar</span>
+                <span className="text-2xl font-bold text-slate-800">${total.toFixed(2)}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total a Pagar</span>
+              <span className="text-2xl font-bold text-slate-800">${total.toFixed(2)}</span>
+            </div>
+          )}
 
           <div className="mb-4 space-y-3">
             <div className="relative">
@@ -368,6 +402,23 @@ export default function POS() {
                 <option value="Mercado Pago">Mercado Pago</option>
                 <option value="Transferencia Bancaria">Transferencia Bancaria</option>
                 <option value="Efectivo">Efectivo</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Promoción (Opcional)</label>
+              <select 
+                value={selectedPromotion?.id || ''}
+                onChange={(e) => {
+                  const promo = promotions.find(p => p.id === e.target.value);
+                  setSelectedPromotion(promo || null);
+                }}
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
+              >
+                <option value="">Ninguna</option>
+                {promotions.map(promo => (
+                  <option key={promo.id} value={promo.id}>{promo.name} (-{promo.discountPercentage}%)</option>
+                ))}
               </select>
             </div>
             

@@ -42,6 +42,19 @@ export interface Sale {
   change?: number;
   customerId?: string;
   customerName?: string;
+  promotionId?: string;
+  promotionName?: string;
+  discountPercentage?: number;
+  discountApplied?: number;
+  subtotal?: number;
+}
+
+export interface Promotion {
+  id: string;
+  name: string;
+  discountPercentage: number;
+  active: boolean;
+  createdAt: number;
 }
 
 export interface Customer {

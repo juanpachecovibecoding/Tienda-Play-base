@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Sale } from '../types';
+import { Sale, UserProfile } from '../types';
 import { useAuth } from '../hooks/useAuth';
+
 import { Receipt, Search, Eye, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -10,36 +11,47 @@ import { es } from 'date-fns/locale';
 export default function Sales() {
   const { profile } = useAuth();
   const [sales, setSales] = useState<Sale[]>([]);
+  const [users, setUsers] = useState<Record<string, UserProfile>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
 
-  const fetchSales = async () => {
+  const fetchSalesAndUsers = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, 'sales'), orderBy('date', 'desc'));
-      const snap = await getDocs(q);
+      const [salesSnap, usersSnap] = await Promise.all([
+        getDocs(query(collection(db, 'sales'), orderBy('date', 'desc'))),
+        getDocs(collection(db, 'users'))
+      ]);
+
+      const usersMap: Record<string, UserProfile> = {};
+      usersSnap.forEach(doc => {
+        usersMap[doc.id] = { id: doc.id, ...doc.data() } as UserProfile;
+      });
+      setUsers(usersMap);
+
       const results: Sale[] = [];
-      snap.forEach(doc => {
+      salesSnap.forEach(doc => {
         results.push({ id: doc.id, ...doc.data() } as Sale);
       });
       setSales(results);
     } catch (error) {
-      console.error("Error fetching sales:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSales();
+    fetchSalesAndUsers();
   }, []);
 
-  const filteredSales = sales.filter(s => 
-    s.sellerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredSales = sales.filter(s => {
+    const sellerName = users[s.sellerUid]?.name || s.sellerEmail;
+    return sellerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  });
 
   return (
     <div className="flex-1 flex flex-col gap-6 h-full min-h-0 relative">
@@ -86,7 +98,7 @@ export default function Sales() {
                     <div className="text-xs text-slate-500">{format(new Date(sale.date), 'HH:mm')}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-slate-600 font-medium">{sale.sellerEmail}</div>
+                    <div className="text-slate-600 font-medium">{users[sale.sellerUid]?.name || sale.sellerEmail}</div>
                   </td>
                   <td className="px-6 py-4 text-slate-600">
                     {sale.customerName ? (
@@ -148,7 +160,7 @@ export default function Sales() {
                 </div>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Vendedor</p>
-                  <p className="font-semibold text-slate-800 truncate">{selectedSale.sellerEmail}</p>
+                  <p className="font-semibold text-slate-800 truncate">{users[selectedSale.sellerUid]?.name || selectedSale.sellerEmail}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Cliente</p>
@@ -188,6 +200,20 @@ export default function Sales() {
                     ))}
                   </tbody>
                   <tfoot className="bg-slate-50">
+                    {selectedSale.promotionId && selectedSale.subtotal !== undefined && (
+                      <>
+                        <tr>
+                          <td colSpan={3} className="px-4 py-2 text-right font-medium text-slate-500 text-xs">Subtotal</td>
+                          <td className="px-4 py-2 text-right font-semibold text-slate-700">${selectedSale.subtotal.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                          <td colSpan={3} className="px-4 py-2 text-right font-medium text-emerald-600 text-xs">
+                            Descuento ({selectedSale.promotionName}) -{selectedSale.discountPercentage}%
+                          </td>
+                          <td className="px-4 py-2 text-right font-semibold text-emerald-600">-${selectedSale.discountApplied?.toFixed(2)}</td>
+                        </tr>
+                      </>
+                    )}
                     <tr>
                       <td colSpan={3} className="px-4 py-3 text-right font-bold text-slate-600 uppercase text-[10px] tracking-wider">Total</td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900 text-base">${selectedSale.total.toFixed(2)}</td>

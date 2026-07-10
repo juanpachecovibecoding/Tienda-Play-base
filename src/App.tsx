@@ -18,6 +18,7 @@ import Reports from './pages/Reports';
 import Users from './pages/Users';
 import Customers from './pages/Customers';
 import Settings from './pages/Settings';
+import Promotions from './pages/Promotions';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
               <Route path="pos" element={<POS />} />
               <Route path="customers" element={<ProtectedRoute adminOnly><Customers /></ProtectedRoute>} />
               <Route path="sales" element={<ProtectedRoute adminOnly><Sales /></ProtectedRoute>} />
+              <Route path="promotions" element={<ProtectedRoute adminOnly><Promotions /></ProtectedRoute>} />
               
               <Route path="reports" element={<ProtectedRoute adminOnly><Reports /></ProtectedRoute>} />
               <Route path="users" element={<ProtectedRoute superAdminOnly><Users /></ProtectedRoute>} />
